@@ -1,0 +1,34 @@
+name: Deploy to EC2  # Name of the workflow
+
+on:
+  push:
+    branches:
+      - main           # Only runs when code is pushed to main branch
+
+jobs:
+  deploy:             # Job name
+    runs-on: ubuntu-latest   # Use GitHub’s virtual Linux machine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3   # Pull your repo’s code
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run SSH Deployment Script
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/mern-bookstore-server
+            git pull origin main
+            npm install
+            pm2 restart all
